@@ -106,38 +106,6 @@ class DocsTranslatorFlow(Flow[DocsTranslatorState]):
             await asyncio.sleep(delay_between_batches)
 
     @listen(translate_files)
-    async def double_check_translations(self):
-        async def double_check_single_file(file):
-            result = await translator.kickoff_async(
-                f"""
-                Double check the translation of the file. Ensure they are all high-quality.
-                - File => "{file.path}"
-                - File content => "{file.content}"
-                - File content already translated => "{file.content_translated}"
-                - Desired language => "pt-BR"
-
-                IMPORTANT NOTES:
-                - Do not mess up with the .mdx syntax content.
-                - Do not translate any code blocks.
-                - Do not translate any entity names like "crew", "flow" or "agent".
-                - Output only the translated content, no other text.
-                """
-            )
-            file.content_translated = result.raw
-
-        files_to_process = [file for file in self.state.files]
-        batch_size = 10
-        delay_between_batches = 3
-        for i in range(0, len(files_to_process), batch_size):
-            batch = files_to_process[i : i + batch_size]
-            print(
-                f"\033[31m\n>> [double_check_translations] Starting batch {i // batch_size + 1} of {(len(files_to_process) + batch_size - 1) // batch_size}\033[0m"
-            )
-            tasks = [double_check_single_file(file) for file in batch]
-            await asyncio.gather(*tasks)
-            await asyncio.sleep(delay_between_batches)
-
-    @listen(double_check_translations)
     def save_files(self):
         base_dir = f"tmp/{self.state.id}"  # type: ignore
         for file in self.state.files:
