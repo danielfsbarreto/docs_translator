@@ -30,3 +30,7 @@ class DocsTranslatorState(BaseModel):
     repo_path: str = "crewAIInc/crewAI"
     docs_dir: str = "docs"
     files: list[File] = Field(default_factory=list)
+    whitelist_paths: list[str] = Field(
+        default_factory=list,
+        description="The list of paths to files that should be translated.",
+    )
