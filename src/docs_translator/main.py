@@ -77,7 +77,7 @@ class DocsTranslatorFlow(Flow[DocsTranslatorState]):
         async def translate_single_file(file):
             result = await translator.kickoff_async(
                 f"""
-                Translate the content of the file.
+                Translate the content of the file. Make sure the translation is high-quality.
                 - File => "{file.path}"
                 - File content => "{file.content}"
                 - Desired language => "pt-BR"
@@ -85,14 +85,16 @@ class DocsTranslatorFlow(Flow[DocsTranslatorState]):
                 IMPORTANT NOTES:
                 - Do not mess up with the .mdx syntax content.
                 - Do not translate any code blocks.
-                - Do not translate any entity names like "crew", "flow" or "agent".
+                - Do not translate any entity names like "crew", "flow" or "prompt".
                 - Output only the translated content, no other text.
                 """
             )
             file.content_translated = result.raw
 
         files_to_process = [
-            file for file in self.state.files if file.content_translated is None
+            file
+            for file in self.state.files
+            if file.content is not None and file.content_translated is None
         ]
         batch_size = 10
         delay_between_batches = 3
@@ -107,8 +109,11 @@ class DocsTranslatorFlow(Flow[DocsTranslatorState]):
 
     @listen(translate_files)
     def save_files(self):
+        files_to_process = [
+            file for file in self.state.files if file.content_translated is not None
+        ]
         base_dir = f"tmp/{self.state.id}"  # type: ignore
-        for file in self.state.files:
+        for file in files_to_process:
             full_file_path = os.path.join(base_dir, file.path)
             os.makedirs(os.path.dirname(full_file_path), exist_ok=True)
 

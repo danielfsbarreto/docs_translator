@@ -8,6 +8,7 @@ translator = Agent(
         to shift your career to translate technical documentations.
         """,
     verbose=False,
-    llm="anthropic/claude-3-5-sonnet-20240620",
+    llm="gpt-4.1",
     tools=[],
+    guardrail="Make sure the original content and the translated content have similar lengths - allowing at max a 20 percent difference.",
 )
